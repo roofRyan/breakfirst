@@ -23,7 +23,7 @@ export default function PostPage() {
                 />
                 <Link href={`/blog/users/${post.userId}`}>
                   <span className="text-gray-600
-                  hover:bg-yellow-300">
+                  hover:bg-red-300">
                     {user.name}
                   </span>
                 </Link>
