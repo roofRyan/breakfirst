@@ -131,10 +131,6 @@ const config = {
         "fromEnvVar": null,
         "value": "windows",
         "native": true
-      },
-      {
-        "fromEnvVar": null,
-        "value": "rhel-openssl-3.0.x"
       }
     ],
     "previewFeatures": [],
@@ -161,8 +157,8 @@ const config = {
       }
     }
   },
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider      = \"prisma-client-js\"\n  output        = \"./lib/generated/prisma\"\n  binaryTargets = [\"native\", \"rhel-openssl-3.0.x\"]\n}\n\ndatasource db {\n  provider  = \"postgresql\"\n  url       = env(\"DATABASE_URL\")\n  directUrl = env(\"DIRECT_URL\")\n}\n\nmodel Todo {\n  id    Int     @id @default(autoincrement())\n  title String\n  done  Boolean @default(false)\n}\n",
-  "inlineSchemaHash": "3e61cb128c4d803817ee44b050b6e53a067c13c725900f2f7dfa5a26f31a40a5",
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"./lib/generated/prisma\"\n}\n\ndatasource db {\n  provider  = \"postgresql\"\n  url       = env(\"DATABASE_URL\")\n  directUrl = env(\"DIRECT_URL\")\n}\n\nmodel Todo {\n  id    Int     @id @default(autoincrement())\n  title String\n  done  Boolean @default(false)\n}\n",
+  "inlineSchemaHash": "a07ca5d24f0ebbf64e909a343c1b8b832a741183f82262ca070f01399d004fbe",
   "copyEngine": true
 }
 config.dirname = '/'
