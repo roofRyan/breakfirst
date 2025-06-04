@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 
 export default function TodoPage(){
-    const {todos, setTodos} = useState([]);
-    const {title, setTitle} = useState("");
-    const {done, setdone} = useState(false);
+    const [todos, setTodos] = useState([]);
+    const [title, setTitle] = useState("");
+    const [done, setdone] = useState(false);
     
     useEffect(()=>{
         fetch("/api/todo")
@@ -19,7 +19,7 @@ export default function TodoPage(){
             headers: {
                 "Content-Type": "application/json",
             },
-            body: ISON.stringify({ title}),
+            body: JSON.stringify({ title}),
         });
         const newTodo = await res.json();
         setTodos((prevTodos) => [...prevTodos, newTodo]);
@@ -28,7 +28,7 @@ export default function TodoPage(){
     
     const handleToggleTodo = (e, id, done) =>{
         e.preventDefault();
-        const res = fetch(`/api/todo/${todo.id}`,{
+        const res = fetch(`/api/todo/${id}`,{
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
@@ -43,7 +43,7 @@ export default function TodoPage(){
 
     const handleDeleteTodo = async (e, id) => {
         e.preventDefault();
-        await fetch(`/api/todo/${todo.id}`,{
+        await fetch(`/api/todo/${id}`,{
             method: "DELETE",
         });
         const newTodos = todos.filter((todo)=> todo.id !== id );

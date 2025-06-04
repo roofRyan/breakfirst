@@ -1,7 +1,5 @@
 import prisma from "@/lib/prisma";
-import addTodo from "@/app/actions/addTodo";
-import deleteTodo from "../actions/deleteTodo";
-import toggleTodo from "../actions/toggleTodo";
+import { addTodo, deleteTodo, toggleTodo} from "@/app/actions/todo";
 
 export default async function TodoPage(){
     const todos = await prisma.todo.findMany({
