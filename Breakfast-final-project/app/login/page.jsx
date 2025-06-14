@@ -104,19 +104,6 @@ export default function LoginPage() {
                         />
                         使用 Google 登入
                     </button>
-                    <button
-                        type="button"
-                        onClick={() => signIn("github")}
-                        className="w-full bg-white text-gray-800 border border-gray-300 py-2 px-4 rounded-md flex items-center justify-center gap-2 shadow hover:bg-gray-50 transition"
-                    >
-                        <Image
-                            src="/github.png"
-                            alt="GitHub"
-                            width={24}
-                            height={24}
-                        />
-                        使用 GitHub 登入
-                    </button>
                 </div>
             </div>
         </div>
