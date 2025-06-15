@@ -13,7 +13,7 @@ const nextConfig = {
                 hostname: "avatars.githubusercontent.com",
             },
             {
-                hostname: "unkcufuczwcoyuuxwqli.supabase.co",
+                hostname: process.env.NEXT_PUBLIC_SUPABASE_URL,
             },
         ],
     },
