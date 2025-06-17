@@ -73,7 +73,7 @@ export default function MenuManagementPage() {
         formData.append("file", imageFile);
 
         try {
-            const response = await fetch("/api/image/upload", {
+            const response = await fetch("/api/upload", {
                 method: "POST",
                 body: formData,
             });
