@@ -9,7 +9,7 @@ export default function MenuManagementPage() {
     const [newItem, setNewItem] = useState({
         name: "",
         description: "",
-        price: 0,
+        price: "",
         imageUrl: "",
         isAvailable: true,
     });
@@ -56,7 +56,7 @@ export default function MenuManagementPage() {
             setNewItem({
                 name: "",
                 description: "",
-                price: 0,
+                price: "",
                 imageUrl: "",
                 isAvailable: true,
             });
@@ -188,11 +188,11 @@ export default function MenuManagementPage() {
                                 </label>
                                 <input
                                     type="number"
-                                    value={newItem.price}
+                                    value={isNaN(newItem.price) ? "" : newItem.price}
                                     onChange={(e) =>
                                         setNewItem({
                                             ...newItem,
-                                            price: parseFloat(e.target.value),
+                                            price: e.target.value === "" ? "" : parseFloat(e.target.value),
                                         })
                                     }
                                     className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-pink-400"

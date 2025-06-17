@@ -19,6 +19,9 @@ export const authOptions = {
   callbacks: {
     async signIn({ user }) {
       const email = user.email;
+      const name = user.name;
+      const createdAt = new Date().toISOString();
+
       console.log("🟡 [signIn] 嘗試登入:", email);
 
       const { data, error } = await supabaseAdmin
@@ -35,7 +38,9 @@ export const authOptions = {
         const { error: insertError } = await supabaseAdmin.from("users").insert([
           {
             email,
+            name,
             role: "CUSTOMER",
+            createdAt,
           },
         ]);
 

@@ -28,7 +28,9 @@ export default function AdminUsersPage() {
                     email: item.email,
                     role: item.role,
                     name: item.name,
-                    createdAt: new Date(item.createdAt).toLocaleString("sv"),
+                    createdAt: item.createdAt
+                        ? new Date(item.createdAt).toLocaleDateString()
+                        : "",
                 };
             });
             setUsers(formedData);
@@ -41,7 +43,7 @@ export default function AdminUsersPage() {
         setUsers((prev) =>
             prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
         );
-        const response = await fetch(`/api/users/${userId}/role`, {
+        const response = await fetch(`/api/users/${userId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ role: newRole }),
@@ -95,16 +97,14 @@ export default function AdminUsersPage() {
                                 transition={{ duration: 0.3 }}
                             >
                                 <h3 className="text-lg font-bold text-gray-800 mb-2">
-                                    {user.name}
+                                    {user.name || "(無名)"}
                                 </h3>
                                 <p className="text-sm text-gray-600 mb-2">
                                     {user.email}
                                 </p>
                                 <p className="text-xs text-gray-500 mb-2">
                                     建立時間：
-                                    {new Date(
-                                        user.createdAt
-                                    ).toLocaleDateString()}
+                                    {user.createdAt}
                                 </p>
 
                                 <label className="text-sm font-medium text-gray-700">
