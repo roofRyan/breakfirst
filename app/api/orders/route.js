@@ -6,54 +6,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
-// ✅ GET /api/orders?customerId=xxx
-export async function GET(req) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const customerId = searchParams.get("customerId");
-
-    if (!customerId) {
-      return NextResponse.json(
-        { message: "customerId 必須提供且為字串" },
-        { status: 400 }
-      );
-    }
-
-    const { data: orders, error } = await supabase
-      .from("Order")
-      .select(`
-        id,
-        status,
-        paymentStatus,
-        totalAmount,
-        createdAt,
-        completedAt,
-        items:OrderItem (
-          id,
-          quantity,
-          specialRequest,
-          menuItem:MenuItem (
-            name,
-            price
-          )
-        )
-      `)
-      .eq("customerId", customerId)
-      .order("createdAt", { ascending: false });
-
-    if (error) throw error;
-
-    return NextResponse.json(orders);
-  } catch (error) {
-    console.error("取得訂單錯誤:", error);
-    return NextResponse.json(
-      { message: "伺服器錯誤", error: String(error) },
-      { status: 500 }
-    );
-  }
-}
-
-// ✅ POST /api/orders
+// POST /api/orders
 export async function POST(request) {
   try {
     const body = await request.json();

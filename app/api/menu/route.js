@@ -1,32 +1,43 @@
-import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+// app/api/menu/route.js
 
+import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
+
+// GET 所有菜單
 export async function GET() {
-    const menu = await prisma.menuItem.findMany({ orderBy: [{ id: "asc" }] });
-    return NextResponse.json(menu);
+    const { data, error } = await supabase
+        .from("MenuItem")
+        .select("*")
+        .order("id", { ascending: true });
+
+    if (error) {
+        console.error("Supabase 錯誤:", error.message);
+        return NextResponse.json({ message: "伺服器錯誤" }, { status: 500 });
+    }
+
+    return NextResponse.json(data);
 }
 
+// POST 新增菜單
 export async function POST(request) {
     try {
         const body = await request.json();
 
-        // 檢查必要欄位
         if (!body.name || typeof body.name !== "string") {
-            return NextResponse.json(
-                { message: "name 是必填欄位" },
-                { status: 400 }
-            );
+            return NextResponse.json({ message: "name 是必填欄位" }, { status: 400 });
         }
 
         if (typeof body.price !== "number" || isNaN(body.price)) {
-            return NextResponse.json(
-                { message: "price 必須是數字" },
-                { status: 400 }
-            );
+            return NextResponse.json({ message: "price 必須是數字" }, { status: 400 });
         }
 
-        const newMenu = await prisma.menuItem.create({
-            data: {
+        const { data, error } = await supabase.from("MenuItem").insert([
+            {
                 name: body.name,
                 description: body.description || null,
                 price: body.price,
@@ -36,14 +47,16 @@ export async function POST(request) {
                         ? body.isAvailable
                         : true,
             },
-        });
+        ]).select().single();
 
-        return NextResponse.json(newMenu);
+        if (error) {
+            console.error("Supabase 插入錯誤:", error.message);
+            return NextResponse.json({ message: "新增失敗", error: error.message }, { status: 500 });
+        }
+
+        return NextResponse.json(data);
     } catch (error) {
-        console.error("後端錯誤:", error);
-        return NextResponse.json(
-            { message: "伺服器錯誤", error: String(error) },
-            { status: 500 }
-        );
+        console.error("系統錯誤:", error);
+        return NextResponse.json({ message: "伺服器錯誤", error: String(error) }, { status: 500 });
     }
 }
