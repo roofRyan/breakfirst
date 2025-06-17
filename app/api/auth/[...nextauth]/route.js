@@ -35,21 +35,25 @@ export const authOptions = {
       if (!data && email) {
         console.log("🟠 [signIn] 該用戶不存在，準備新增");
 
-        const { error: insertError } = await supabaseAdmin.from("users").insert([
-          {
-            email,
-            name,
-            role: "CUSTOMER",
-            createdAt,
-          },
-        ]);
+        const { data: insertedData, error: insertError } = await supabaseAdmin
+          .from("users")
+          .insert([
+            {
+              email,
+              name,
+              role: "CUSTOMER",
+              createdAt,
+            },
+          ])
+          .select()
+          .single();
 
         if (insertError) {
           console.error("🔴 [signIn] 新增使用者失敗:", insertError);
           return false;
         }
 
-        console.log("🟢 [signIn] 新增使用者成功");
+        console.log("🟢 [signIn] 新增使用者成功:", insertedData);
       }
 
       return true;
@@ -62,14 +66,15 @@ export const authOptions = {
       if (email) {
         const { data, error } = await supabaseAdmin
           .from("users")
-          .select("role")
+          .select("id, role")
           .eq("email", email)
           .single();
 
         if (error) {
-          console.error("🔴 [session] 讀取使用者角色失敗:", error);
+          console.error("🔴 [session] 讀取使用者資料失敗:", error);
         } else {
-          console.log("🟢 [session] 使用者角色:", data?.role);
+          console.log("🟢 [session] 使用者資料:", data);
+          session.user.id = data?.id;
           session.user.role = data?.role || "CUSTOMER";
         }
       }
