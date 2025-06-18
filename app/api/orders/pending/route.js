@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth"; // 你的 next-auth 設定檔路徑
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -8,33 +10,19 @@ const supabase = createClient(
 
 export async function GET(request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
+    // 取得 session
+    const session = await getServerSession(authOptions);
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: "Missing userId query parameter" },
-        { status: 400 }
-      );
+    if (!session) {
+      return NextResponse.json({ error: "未登入" }, { status: 401 });
     }
 
-    // 查詢 user 資料來驗證角色
-    const { data: user, error: userError } = await supabase
-      .from("User")
-      .select("role")
-      .eq("id", userId)
-      .single();
+    // 假設 role 放在 session.user.role
+    const userRole = session.user.role;
 
-    if (userError || !user) {
+    if (userRole !== "STAFF" && userRole !== "OWNER") {
       return NextResponse.json(
-        { error: "User not found or failed to fetch" },
-        { status: 404 }
-      );
-    }
-
-    if (user.role !== "STAFF") {
-      return NextResponse.json(
-        { error: "Access denied: Only staff can access this API" },
+        { error: "權限不足" },
         { status: 403 }
       );
     }
@@ -51,7 +39,7 @@ export async function GET(request) {
         customer:customerId (
           name
         ),
-        items (
+        OrderItem (
           id,
           quantity,
           specialRequest,
@@ -72,7 +60,7 @@ export async function GET(request) {
   } catch (error) {
     console.error("Failed to get pending orders:", error);
     return NextResponse.json(
-      { error: "Failed to fetch pending orders" },
+      { error: "取得待處理訂單失敗" },
       { status: 500 }
     );
   }

@@ -91,7 +91,7 @@ export default function OrdersPage() {
 
   const handleCancelOrderButton = async (orderId) => {
     try {
-      const response = await fetch(`/api/orders/${orderId}/status`, {
+      const response = await fetch(`/api/orders/${user.id}/${orderId}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "CANCELLED" }),
