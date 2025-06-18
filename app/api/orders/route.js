@@ -6,6 +6,47 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
+// GET /api/orders?customerId=xxx
+export async function GET(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const customerId = searchParams.get("customerId");
+
+    if (!customerId) {
+      return NextResponse.json(
+        { message: "缺少 customerId" },
+        { status: 400 }
+      );
+    }
+
+    const { data, error } = await supabase
+      .from("Order")
+      .select(`
+        *,
+        OrderItem (
+          *,
+          MenuItem (
+            id,
+            name,
+            price
+          )
+        )
+      `)
+      .eq("customerId", customerId)
+      .order("createdAt", { ascending: false });
+
+    if (error) throw error;
+
+    return NextResponse.json(data, { status: 200 });
+  } catch (error) {
+    console.error("取得訂單錯誤:", error);
+    return NextResponse.json(
+      { message: "伺服器錯誤", error: String(error) },
+      { status: 500 }
+    );
+  }
+}
+
 // POST /api/orders
 export async function POST(request) {
   try {
@@ -65,7 +106,7 @@ export async function POST(request) {
     // 建立訂單
     const { data: orderData, error: orderError } = await supabase
       .from("Order")
-      .insert([{ customerId, totalAmount }])
+      .insert([{ customerId, totalAmount, createdAt: new Date().toISOString() }])
       .select()
       .single();
 
@@ -88,7 +129,7 @@ export async function POST(request) {
 
     if (itemError) throw itemError;
 
-    return NextResponse.json(orderData, { status: 200 });
+    return NextResponse.json(orderData, { status: 201 });
   } catch (error) {
     console.error("建立訂單錯誤:", error);
     return NextResponse.json(

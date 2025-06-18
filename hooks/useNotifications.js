@@ -35,7 +35,7 @@ export default function useNotifications() {
             if (!data) {
                 // api
                 const response = await fetch(
-                    `/api/notifications/users/${userId}`
+                    `/api/notifications/me`
                 );
                 if (!response.ok) {
                     console.error("取得使用者通知失敗");

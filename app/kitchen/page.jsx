@@ -92,7 +92,7 @@ export default function KitchenPage() {
         customerId
       );
       if (!notificationRes) {
-        response = await fetch(`/api/notifications/users/${customerId}`, {
+        response = await fetch(`/api/notifications/me`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
