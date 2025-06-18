@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { useMqttClient } from "@/hooks/useMqttClient";
 import {
   editOrderStatus,
@@ -16,6 +17,9 @@ import {
 } from "@/utils/mqttTopic";
 
 export default function PendingOrdersPage() {
+  const { data: session, status } = useSession();
+  const user = session?.user;
+
   const [orders, setOrders] = useState([]);
   const [topics, setTopics] = useState([]);
 
@@ -59,7 +63,10 @@ export default function PendingOrdersPage() {
       try {
         const newOrder = JSON.parse(lastMessage.payload);
         setOrders((prev) => {
-          const exists = prev.some((order) => order.id === newOrder.id);
+          const exists = prev.some((order) => {
+            console.log("比對中：order.id =", order.id, " vs newOrder.id =", newOrder.id);
+            return order.id === newOrder.id;
+          });
           return exists ? prev : [newOrder, ...prev];
         });
       } catch (err) {
@@ -82,35 +89,37 @@ export default function PendingOrdersPage() {
 
   const handleAcceptOrder = async (orderId) => {
     try {
-      let response;
-
-      // 1. 更新狀態
-      let data = await editOrderStatus({ status: "PREPARING" }, orderId);
-      if (!data) {
-        response = await fetch(`/api/orders/${user.id}/${orderId}/status`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: "PREPARING" }),
-        });
-        if (!response.ok) {
-          alert("修改訂單狀態失敗");
-          return;
-        }
-        data = await response.json();
-      }
-
-      // 2. 移除 UI 中的訂單
-      setOrders((prev) => prev.filter((order) => order.id !== orderId));
-
       const order = orders.find((o) => o.id === orderId);
-      const customerId = order?.customerId;
-      if (!customerId) {
-        console.error("找不到顧客 ID");
+      if (!order) {
+        alert("找不到訂單");
         return;
       }
 
-      // 3. 通知顧客：訂單已接受
-      let notificationRes = await addNotification(
+      // 取訂單裡的顧客ID，確保有拿到
+      const customerId = order.customer?.id || order.customerId;
+      if (!customerId) {
+        alert("找不到顧客 ID");
+        return;
+      }
+
+      // 呼叫 PATCH API，路徑用訂單的 customerId，不是 session user id
+      const response = await fetch(`/api/orders/${customerId}/${orderId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "PREPARING" }),
+      });
+
+      if (!response.ok) {
+        alert("修改訂單狀態失敗");
+        return;
+      }
+      const data = await response.json();
+
+      // UI 移除已接受訂單
+      setOrders((prev) => prev.filter((order) => order.id !== orderId));
+
+      // 發送通知與 MQTT 同你的邏輯不變
+      await addNotification(
         {
           orderId,
           message: `訂單 ${orderId.slice(0, 8)} 正在製作中`,
@@ -118,23 +127,6 @@ export default function PendingOrdersPage() {
         customerId
       );
 
-      if (!notificationRes) {
-        response = await fetch(`/api/notifications/me`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            orderId,
-            message: `訂單 ${orderId.slice(0, 8)} 正在製作中`,
-          }),
-        });
-        if (!response.ok) {
-          alert("傳送通知失敗");
-          return;
-        }
-        notificationRes = await response.json();
-      }
-
-      // 4. 發布 MQTT 通知訊息給顧客
       const notifyTopic = getAcceptCustomerOrderTopic(customerId);
       const notifyPayload = JSON.stringify({
         type: "ORDER_ACCEPTED",
@@ -145,7 +137,6 @@ export default function PendingOrdersPage() {
       });
       publishMessage(notifyTopic, notifyPayload);
 
-      // 5. 發布 MQTT 廚房訂單資料
       const kitchenTopic = getKitchenOrderTopic();
       const kitchenPayload = JSON.stringify({
         orderId,
@@ -159,11 +150,20 @@ export default function PendingOrdersPage() {
         createdAt: order.createdAt,
       });
       publishMessage(kitchenTopic, kitchenPayload);
+
     } catch (error) {
       console.error("接受訂單失敗:", error);
       alert("接受訂單時發生錯誤");
     }
   };
+
+  if (status === "loading") {
+    return <p>載入中...</p>;
+  }
+
+  if (!user) {
+    return <p>請先登入才能查看訂單。</p>;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-red-100 px-4 sm:px-6 py-8">
